@@ -119,10 +119,10 @@ class TruthOrDareCog(commands.Cog):
         await ctx.reply(embed=embed, view=AllView(self.db))
 
     @commands.hybrid_command(name="report", description="report a truth or a dare")
-    async def report(self, ctx: commands.Context, identifier: int):
+    async def report(self, ctx: commands.Context, identifier: int, reasoning: str = "No Reason Provided"):
         isDare = str(identifier)[0] == 2
 
-        await self.bot.get_user(680116696819957810).send(f"A {'Dare' if isDare else 'Truth'} HAS BEEN REPORTED, ID: {identifier}\nThe string format of this is: \"{fromID(self.db, identifier)}\"")
+        await self.bot.get_user(680116696819957810).send(f"A {'Dare' if isDare else 'Truth'} HAS BEEN REPORTED, ID: {identifier}, REASONING: \"{reasoning}\"\nThe string format of this is: \"{fromID(self.db, identifier)}\"")
 
         await ctx.reply(f"Successfully reported {'Dare' if isDare else 'Truth'} id {identifier}")
 
