@@ -120,7 +120,7 @@ class TruthOrDareCog(commands.Cog):
 
     @commands.hybrid_command(name="report", description="report a truth or a dare")
     async def report(self, ctx: commands.Context, identifier: int, reasoning: str = "No Reason Provided"):
-        isDare = str(identifier)[0] == 2
+        isDare = int(str(identifier)[0]) == 2
 
         await self.bot.get_user(680116696819957810).send(f"A {'Dare' if isDare else 'Truth'} HAS BEEN REPORTED, ID: {identifier}, REASONING: \"{reasoning}\"\nThe string format of this is: \"{fromID(self.db, identifier)}\"")
 
