@@ -31,7 +31,7 @@ def locateDare(db: dict, dare) -> int:
 
 
 def fromID(db: dict, identifier: int) -> str:
-    if str(identifier)[0] == 2:
+    if int(str(identifier)[0]) == 2:
         return db["dares"][int(str(identifier)[1::])]
     else:
         return db["truths"][int(str(identifier)[1::])]
