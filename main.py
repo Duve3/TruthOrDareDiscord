@@ -8,6 +8,7 @@ import json
 # globals
 cogPath = "cogs."
 debug = False
+prod = False
 
 
 def getCogs():
@@ -105,11 +106,11 @@ async def on_guild_remove(guild: discord.Guild):
 
 
 def main():
-    global debug
+    global debug, prod
     try:
         with open("token.secret") as tf:
             r = tf.read()
-            if len(r.split("\n")) == 2:
+            if len(r.split("\n")) == 2 and prod is False:
                 TOKEN = r.split("\n")[1]
                 debug = True
             else:
