@@ -186,7 +186,16 @@ class TruthOrDareCog(commands.Cog):
 
     @commands.hybrid_command(name="from_id", description="get a truth or a dare from their ID")
     async def sendFromID(self, ctx: commands.Context, identifier: int):
-        await ctx.reply(f"ID#28 is: \"{fromID(self.db, identifier)}\"")
+        await ctx.reply(f"ID#{identifier} is: \"{fromID(self.db, identifier)}\"")
+
+    @commands.command(name="add_to_truths_db")
+    async def addToTruthsDB(self, ctx: commands.Context, truths: list[str]):
+        if ctx.author.id != 680116696819957810:
+            await ctx.reply("This command doesn't work currently!")
+            return
+
+        print(truths)
+
 
     # doing something when the cog gets loaded
     async def cog_load(self):
