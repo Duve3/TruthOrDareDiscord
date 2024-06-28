@@ -136,14 +136,15 @@ class ReportView(discord.ui.View):
 
     @discord.ui.button(label="Modify", custom_id="modify", disabled=False, style=discord.ButtonStyle.blurple)
     async def ModifyButton(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.channel.send("Send what you want to be the new version of the dare (REMEMBER PUNCTUATION!)")
+        await interaction.response.defer()
+        await interaction.followup.send("Send what you want to be the new version of the dare (REMEMBER PUNCTUATION!)")
+        old = fromID(self.db, self.identifier)
+        new: discord.Message = await self.bot.wait_for('message', timeout=120)
 
-        new = await self.bot.wait_for('message', timeout=120)
+        modifyFromDB(self.db, self.identifier, new.content)
 
-        modifyFromDB(self.db, self.identifier, new)
-
-        await interaction.response.send_message(
-            f"Modifying the {'Dare' if self.isDare else 'Truth'} from {fromID(self.db, self.identifier)} to {new}! (ID: {self.identifier})")
+        await interaction.followup.send(
+            f"Modifying the {'Dare' if self.isDare else 'Truth'} from \"{old}\" to \"{fromID(self.db, self.identifier)}\"! (ID: {self.identifier})")
 
 
 class TruthOrDareCog(commands.Cog):
