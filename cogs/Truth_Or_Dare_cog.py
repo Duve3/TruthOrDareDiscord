@@ -44,6 +44,13 @@ def removeFromDB(db: dict, identifier: int):
         db["truths"].remove(fromID(db, identifier))
 
 
+def modifyFromDB(db: dict, identifier: int, newValue: str):
+    if int(str(identifier)[0]) == 2:
+        db["dares"][int(str(identifier)[1::])] = newValue
+    else:
+        db["truths"][int(str(identifier)[1::])] = newValue
+
+
 class TruthEmbed(discord.Embed):
     def __init__(self, db: dict, author: list[str, str]):
         super().__init__(color=discord.Color.from_rgb(25, 165, 230))
@@ -109,8 +116,9 @@ class AllView(discord.ui.View):
 
 
 class ReportView(discord.ui.View):
-    def __init__(self, db: dict, identifier):
+    def __init__(self, bot, db: dict, identifier):
         super().__init__(timeout=None)
+        self.bot = bot
         self.db = db
         self.identifier = identifier
         self.isDare = int(str(identifier)[0]) == 2
@@ -118,13 +126,24 @@ class ReportView(discord.ui.View):
     @discord.ui.button(label="Keep", custom_id="keep", disabled=False, style=discord.ButtonStyle.green)
     async def KeepButton(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message(
-            f"Keeping the {'Dare' if self.isDare else 'Truth'}! (ID: {self.identifier})")  # noqa ; yk why
+            f"Keeping the {'Dare' if self.isDare else 'Truth'}! (ID: {self.identifier})")
 
     @discord.ui.button(label="Remove", custom_id="remove", disabled=False, style=discord.ButtonStyle.red)
     async def RemoveButton(self, interaction: discord.Interaction, button: discord.ui.Button):
         removeFromDB(self.db, self.identifier)
         await interaction.response.send_message(
-            f"Removing the {'Dare' if self.isDare else 'Truth'}! (ID: {self.identifier})")  # noqa ; yk why
+            f"Removing the {'Dare' if self.isDare else 'Truth'}! (ID: {self.identifier})")
+
+    @discord.ui.button(label="Modify", custom_id="modify", disabled=False, style=discord.ButtonStyle.blurple)
+    async def ModifyButton(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.channel.send("Send what you want to be the new version of the dare (REMEMBER PUNCTUATION!)")
+
+        new = await self.bot.wait_for('message', timeout=120)
+
+        modifyFromDB(self.db, self.identifier, new)
+
+        await interaction.response.send_message(
+            f"Modifying the {'Dare' if self.isDare else 'Truth'} from {fromID(self.db, self.identifier)} to {new}! (ID: {self.identifier})")
 
 
 class TruthOrDareCog(commands.Cog):
@@ -158,7 +177,9 @@ class TruthOrDareCog(commands.Cog):
     async def report(self, ctx: commands.Context, identifier: int, reasoning: str = "No Reason Provided"):
         isDare = int(str(identifier)[0]) == 2
 
-        await self.bot.get_user(680116696819957810).send(embed=ReportEmbed(self.db, isDare, identifier, reasoning, ctx.author.display_name), view=ReportView(self.db, identifier))
+        await self.bot.get_user(680116696819957810).send(
+            embed=ReportEmbed(self.db, isDare, identifier, reasoning, ctx.author.display_name),
+            view=ReportView(self.bot, self.db, identifier))
 
         await ctx.reply(f"Successfully reported {'Dare' if isDare else 'Truth'} id {identifier}")
 
