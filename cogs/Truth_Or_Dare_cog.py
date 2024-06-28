@@ -194,8 +194,7 @@ class TruthOrDareCog(commands.Cog):
             await ctx.reply("This command doesn't work currently!")
             return
 
-        print(truths)
-
+        self.logger.debug(f"truths found: {truths}")
 
     # doing something when the cog gets loaded
     async def cog_load(self):
