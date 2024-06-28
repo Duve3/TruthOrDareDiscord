@@ -7,7 +7,7 @@ import json
 
 # globals
 cogPath = "cogs."
-debug = False
+debug = True
 
 
 def getCogs():

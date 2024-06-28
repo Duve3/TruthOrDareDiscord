@@ -188,13 +188,13 @@ class TruthOrDareCog(commands.Cog):
     async def sendFromID(self, ctx: commands.Context, identifier: int):
         await ctx.reply(f"ID#{identifier} is: \"{fromID(self.db, identifier)}\"")
 
-    @commands.command(name="add_to_truths_db")
-    async def addToTruthsDB(self, ctx: commands.Context, truths: list[str]):
-        if ctx.author.id != 680116696819957810:
-            await ctx.reply("This command doesn't work currently!")
-            return
+    @commands.hybrid_command(name="how_many_truths", description="Informs you of how many truths there are")
+    async def truthsAmount(self, ctx: commands.Context):
+        await ctx.reply(f"There is: {str(len(self.db['truths']))} truths in the database currently!")
 
-        self.logger.debug(f"truths found: {truths}")
+    @commands.hybrid_command(name="how_many_dares", description="Informs you of how many dares there are")
+    async def daresAmount(self, ctx: commands.Context):
+        await ctx.reply(f"There is: {str(len(self.db['dares']))} dares in the database currently!")
 
     # doing something when the cog gets loaded
     async def cog_load(self):
