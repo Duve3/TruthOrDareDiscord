@@ -184,9 +184,9 @@ class TruthOrDareCog(commands.Cog):
 
         await ctx.reply(f"Successfully reported {'Dare' if isDare else 'Truth'} id {identifier}")
 
-    @commands.hybrid_command(name="fromid", description="get a truth or a dare from their ID")
+    @commands.hybrid_command(name="from_id", description="get a truth or a dare from their ID")
     async def sendFromID(self, ctx: commands.Context, identifier: int):
-        await ctx.reply(f"{fromID(self.db, identifier)}")
+        await ctx.reply(f"ID#28 is: \"{fromID(self.db, identifier)}\"")
 
     # doing something when the cog gets loaded
     async def cog_load(self):
