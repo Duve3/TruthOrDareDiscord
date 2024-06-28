@@ -40,7 +40,7 @@ class Client(commands.Bot):
             intents=intents
         )
 
-    # the method to override in order to run whatever you need before your bot starts
+    # the method to override to run whatever you need before your bot starts
     async def setup_hook(self):
         # to avoid cog getting in this list, end it with something other than .py or make it start with "DISABLED_"
         self.saveDB.start()
@@ -106,7 +106,8 @@ async def on_guild_remove(guild: discord.Guild):
 
 
 def main():
-    global debug, prod
+    global debug, prod, logger
+    logger = setupLogging("main", level=logging.DEBUG)
     try:
         with open("token.secret") as tf:
             r = tf.read()
@@ -120,16 +121,15 @@ def main():
         return
     client.run(TOKEN, log_handler=None)
 
-
-if __name__ == "__main__":
-    # setup
-    logger = setupLogging("main", level=logging.DEBUG)
-    setupLogging("discord", level=logging.INFO)
-    setupLogging("discord.http", level=logging.INFO)
-    try:
-        # startup
-        main()
-    finally:
-        # cleanup
-        with open("./db.json", "w") as db:
-            db.write(json.dumps(client.db))
+# if __name__ == "__main__":
+#     # setup
+#     logger = setupLogging("main", level=logging.DEBUG)
+#     setupLogging("discord", level=logging.INFO)
+#     setupLogging("discord.http", level=logging.INFO)
+#     try:
+#         # startup
+#         main()
+#     finally:
+#         # cleanup
+#         with open("./db.json", "w") as db:
+#             db.write(json.dumps(client.db))
