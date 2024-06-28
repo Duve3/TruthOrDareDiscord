@@ -30,10 +30,7 @@ class Client(commands.Bot):
         intents.guilds = True
         with open("./db.json") as db:
             self.db: dict = json.loads(db.read())
-        if not debug:
-            prefix = "!"
-        else:
-            prefix = "$$!!"
+        prefix = "!"
         super().__init__(
             command_prefix=prefix,
             intents=intents

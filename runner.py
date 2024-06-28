@@ -18,6 +18,8 @@ async def restart(ctx: commands.Context):
     if ctx.author.id != 680116696819957810:
         return await ctx.send("that's not nice buddy")
 
+    await ctx.reply("Restarting... (last sendable message before shutdown!)")
+
     await client.saveDB()
     try:
         logging.getLogger("main").info("RESTARTING: client.close")
@@ -26,7 +28,6 @@ async def restart(ctx: commands.Context):
         # nothing stops me
         pass
     logging.getLogger("main").info("RESTARTING: os.execv")
-    await ctx.reply("Restarting... (on os.execv part)")
     os.execv(sys.executable, ["python"] + sys.argv)
 
 
