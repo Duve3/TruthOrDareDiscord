@@ -37,6 +37,13 @@ def fromID(db: dict, identifier: int) -> str:
         return db["truths"][int(str(identifier)[1::])]
 
 
+def removeFromDB(db: dict, identifier: int):
+    if int(str(identifier)[0]) == 2:
+        db["dares"].remove(fromID(db, identifier))
+    else:
+        db["truths"].remove(fromID(db, identifier))
+
+
 class TruthEmbed(discord.Embed):
     def __init__(self, db: dict, author: list[str, str]):
         super().__init__(color=discord.Color.from_rgb(25, 165, 230))
@@ -56,6 +63,16 @@ class DareEmbed(TruthEmbed):
         self.title = randomDare(db)
 
         self.set_footer(text=f"Type: Dare | ID: {locateDare(db, self.title)} | Made with love by Duve3")
+
+
+class ReportEmbed(discord.Embed):
+    def __init__(self, db: dict, isDare: bool, identifier: int, reasoning: str, name: str):
+        super().__init__()
+        self.title = f"Report | {'Dare' if isDare else 'Truth'}#{identifier}"
+        self.add_field(name="Reasoning", value=f"\"{reasoning}\"")
+        self.add_field(name="String Format of item", value=f"\"{fromID(db, identifier)}\"")
+
+        self.set_footer(text=f"Report was made by {name}")
 
 
 class AllView(discord.ui.View):
@@ -91,6 +108,25 @@ class AllView(discord.ui.View):
         await interaction.response.send_message(embed=embed, view=AllView(self.db))  # noqa ; the method exists its twea
 
 
+class ReportView(discord.ui.View):
+    def __init__(self, db: dict, identifier):
+        super().__init__(timeout=None)
+        self.db = db
+        self.identifier = identifier
+        self.isDare = int(str(identifier)[0]) == 2
+
+    @discord.ui.button(label="Keep", custom_id="keep", disabled=False, style=discord.ButtonStyle.green)
+    async def KeepButton(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message(
+            f"Keeping the {'Dare' if self.isDare else 'Truth'}! (ID: {self.identifier})")  # noqa ; yk why
+
+    @discord.ui.button(label="Remove", custom_id="remove", disabled=False, style=discord.ButtonStyle.red)
+    async def RemoveButton(self, interaction: discord.Interaction, button: discord.ui.Button):
+        removeFromDB(self.db, self.identifier)
+        await interaction.response.send_message(
+            f"Removing the {'Dare' if self.isDare else 'Truth'}! (ID: {self.identifier})")  # noqa ; yk why
+
+
 class TruthOrDareCog(commands.Cog):
     def __init__(self, bot: discord.Client) -> None:
         self.bot = bot
@@ -122,7 +158,7 @@ class TruthOrDareCog(commands.Cog):
     async def report(self, ctx: commands.Context, identifier: int, reasoning: str = "No Reason Provided"):
         isDare = int(str(identifier)[0]) == 2
 
-        await self.bot.get_user(680116696819957810).send(f"A {'Dare' if isDare else 'Truth'} HAS BEEN REPORTED, ID: {identifier}, REASONING: \"{reasoning}\"\nThe string format of this is: \"{fromID(self.db, identifier)}\"")
+        await self.bot.get_user(680116696819957810).send(embed=ReportEmbed(self.db, isDare, identifier, reasoning, ctx.author.display_name), view=ReportView(self.db, identifier))
 
         await ctx.reply(f"Successfully reported {'Dare' if isDare else 'Truth'} id {identifier}")
 
