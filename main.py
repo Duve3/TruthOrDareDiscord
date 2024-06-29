@@ -7,7 +7,7 @@ import json
 
 # globals
 cogPath = "cogs."
-debug = True
+debug = False
 
 
 def getCogs():
@@ -30,6 +30,9 @@ class Client(commands.Bot):
         intents.guilds = True
         with open("./db.json") as db:
             self.db: dict = json.loads(db.read())
+
+        self.recentTruths = []
+        self.recentDares = []
         prefix = "!"
         super().__init__(
             command_prefix=prefix,

@@ -1,25 +1,39 @@
-# import typing_extensions
 from discord.ext import commands
 import discord.ui
 import discord
 from log import setupLogging
 import random
+from TruthOrDareBot.main import Client
 
 
-# if typing_extensions.TYPE_CHECKING:
-#     from TruthOrDareBot.main import Client
-
-
-def randomTruth(db: dict) -> str:
+def randomTruth(bot: Client, db: dict) -> str:
     Truths: list[str] = db["truths"]
 
-    return random.choice(Truths)
+    choice = random.choice(Truths)
+
+    if choice in bot.recentTruths:
+        return randomTruth(bot, db)
+
+    bot.recentTruths.append(choice)
+    if len(bot.recentTruths) >= 100:
+        bot.recentTruths.pop(0)
+
+    return choice
 
 
-def randomDare(db: dict) -> str:
+def randomDare(bot, db: dict) -> str:
     Dares: list[str] = db["dares"]
 
-    return random.choice(Dares)
+    choice = random.choice(Dares)
+
+    if choice in bot.recentDares:
+        return randomDare(bot, db)
+
+    bot.recentDares.append(choice)
+    if len(bot.recentDares) >= 100:
+        bot.recentDares.pop(0)
+
+    return choice
 
 
 def locateTruth(db: dict, truth) -> int:
@@ -52,22 +66,25 @@ def modifyFromDB(db: dict, identifier: int, newValue: str):
 
 
 class TruthEmbed(discord.Embed):
-    def __init__(self, db: dict, author: list[str, str]):
+    def __init__(self, bot, db: dict, author: list[str, str]):
         super().__init__(color=discord.Color.from_rgb(25, 165, 230))
 
-        self.title = randomTruth(db)
+        self.title = randomTruth(bot, db)
 
         self.set_author(name=f"Requested by {author[0]}", icon_url=author[1])
 
         self.set_footer(text=f"Type: Truth | ID: {locateTruth(db, self.title)} | Made with love by Duve3")
 
+        if random.randint(1, 100) == 2:
+            self.set_footer(text=f"Type: Truth | ID: {locateTruth(db, self.title)} | Made with hatred by Duve3")
+
 
 class DareEmbed(TruthEmbed):
-    def __init__(self, db: dict, author: list[str, str]):
-        super().__init__(db, author)
+    def __init__(self, bot, db: dict, author: list[str, str]):
+        super().__init__(bot, db, author)
 
         self.color = discord.Color.from_rgb(235, 60, 45)
-        self.title = randomDare(db)
+        self.title = randomDare(bot, db)
 
         self.set_footer(text=f"Type: Dare | ID: {locateDare(db, self.title)} | Made with love by Duve3")
 
@@ -83,36 +100,37 @@ class ReportEmbed(discord.Embed):
 
 
 class AllView(discord.ui.View):
-    def __init__(self, db: dict):
+    def __init__(self, bot, db: dict):
         super().__init__(timeout=None)
         self.db = db
+        self.bot = bot
 
     @discord.ui.button(label="Truth", custom_id="truth", disabled=False, style=discord.ButtonStyle.green)
     async def TruthButton(self, interaction: discord.Interaction, button: discord.ui.Button):
         user = interaction.user
 
-        embed = TruthEmbed(self.db, [user.display_name, user.display_avatar.url])  # noqa; IT IS proper just believ
+        embed = TruthEmbed(self.bot, self.db, [user.display_name, user.display_avatar.url])
 
-        await interaction.response.send_message(embed=embed, view=AllView(self.db))  # noqa ; the method exists its twea
+        await interaction.response.send_message(embed=embed, view=AllView(self.bot, self.db))
 
     @discord.ui.button(label="Dare", custom_id="dare", disabled=False, style=discord.ButtonStyle.red)
     async def DareButton(self, interaction: discord.Interaction, button: discord.ui.Button):
         user = interaction.user
 
-        embed = DareEmbed(self.db, [user.display_name, user.display_avatar.url])  # noqa; IT IS proper just believ
+        embed = DareEmbed(self.bot, self.db, [user.display_name, user.display_avatar.url])
 
-        await interaction.response.send_message(embed=embed, view=AllView(self.db))  # noqa ; the method exists its twea
+        await interaction.response.send_message(embed=embed, view=AllView(self.bot, self.db))
 
     @discord.ui.button(label="Random", custom_id="random", disabled=False, style=discord.ButtonStyle.blurple)
     async def RandomButton(self, interaction: discord.Interaction, button: discord.ui.Button):
         user = interaction.user
 
         if random.randint(0, 1) == 1:
-            embed = TruthEmbed(self.db, [user.display_name, user.display_avatar.url])  # noqa; IT IS proper just believ
+            embed = TruthEmbed(self.bot, self.db, [user.display_name, user.display_avatar.url])
         else:
-            embed = DareEmbed(self.db, [user.display_name, user.display_avatar.url])  # noqa; IT IS proper just believ
-
-        await interaction.response.send_message(embed=embed, view=AllView(self.db))  # noqa ; the method exists its twea
+            embed = DareEmbed(self.bot, self.db, [user.display_name, user.display_avatar.url])
+            
+        await interaction.response.send_message(embed=embed, view=AllView(self.bot, self.db))
 
 
 class ReportView(discord.ui.View):
@@ -156,23 +174,23 @@ class TruthOrDareCog(commands.Cog):
     @commands.hybrid_command(name="truth", description="Get a random Truth.")
     async def truth(self, ctx: commands.Context):
         user = ctx.author
-        await ctx.reply(embed=TruthEmbed(self.db, [user.display_name, user.display_avatar.url]), view=AllView(self.db))
+        await ctx.reply(embed=TruthEmbed(self.bot, self.db, [user.display_name, user.display_avatar.url]), view=AllView(self.bot, self.db))
 
     @commands.hybrid_command(name="dare", description="Get a random Dare.")
     async def dare(self, ctx: commands.Context):
         user = ctx.author
-        await ctx.reply(embed=DareEmbed(self.db, [user.display_name, user.display_avatar.url]), view=AllView(self.db))
+        await ctx.reply(embed=DareEmbed(self.bot, self.db, [user.display_name, user.display_avatar.url]), view=AllView(self.bot, self.db))
 
     @commands.hybrid_command(name="random", description="Get a truth or a dare randomly.")
     async def random(self, ctx: commands.Context):
         user = ctx.author
 
         if random.randint(0, 1) == 1:
-            embed = TruthEmbed(self.db, [user.display_name, user.display_avatar.url])
+            embed = TruthEmbed(self.bot, self.db, [user.display_name, user.display_avatar.url])
         else:
-            embed = DareEmbed(self.db, [user.display_name, user.display_avatar.url])
+            embed = DareEmbed(self.bot, self.db, [user.display_name, user.display_avatar.url])
 
-        await ctx.reply(embed=embed, view=AllView(self.db))
+        await ctx.reply(embed=embed, view=AllView(self.bot, self.db))
 
     @commands.hybrid_command(name="report", description="report a truth or a dare")
     async def report(self, ctx: commands.Context, identifier: int, reasoning: str = "No Reason Provided"):
